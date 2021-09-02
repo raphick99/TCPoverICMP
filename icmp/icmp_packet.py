@@ -1,35 +1,45 @@
 import struct
 import socket
+import enum
 
-from exceptions import WrongChecksumOnICMPPacket
+from exceptions import WrongChecksumOnICMPPacket, InvalidICMPCode
+
+
+class ICMPType(enum.Enum):
+    EchoReply = 0
+    EchoRequest = 8
 
 
 class ICMPPacket(object):
     ICMP_STRUCT = struct.Struct('>BBHHH')
+    CODE = 0
 
-    def __init__(self, type: int, code: int, identifier: int, sequence_number: int, payload: bytes):
+    def __init__(self, type: ICMPType, identifier: int, sequence_number: int, payload: bytes):
         self.type = type
-        self.code = code
         self.identifier = identifier
         self.sequence_number = sequence_number
         self.payload = payload
 
     @classmethod
     def deserialize(cls, packet: bytes):
-        type, code, checksum, identifier, sequence_number = cls.ICMP_STRUCT.unpack(packet[:cls.ICMP_STRUCT.size])
+        raw_type, code, checksum, identifier, sequence_number = cls.ICMP_STRUCT.unpack(packet[:cls.ICMP_STRUCT.size])
+
+        if code != cls.CODE:
+            raise InvalidICMPCode()
+
         computed_checksum = cls.compute_checksum(
-            cls.ICMP_STRUCT.pack(type, code, 0, identifier, sequence_number) + packet[cls.ICMP_STRUCT.size:]
+            cls.ICMP_STRUCT.pack(raw_type, code, 0, identifier, sequence_number) + packet[cls.ICMP_STRUCT.size:]
         )
 
         if checksum != computed_checksum:
             raise WrongChecksumOnICMPPacket()
 
-        return cls(type, code, identifier, sequence_number, packet[cls.ICMP_STRUCT.size:])
+        return cls(ICMPType(raw_type), identifier, sequence_number, packet[cls.ICMP_STRUCT.size:])
 
     def serialize(self):
         packet_without_checksum = self.ICMP_STRUCT.pack(
-            self.type,
-            self.code,
+            self.type.value,
+            self.CODE,
             0,
             self.identifier,
             self.sequence_number
@@ -37,8 +47,8 @@ class ICMPPacket(object):
         checksum = self.compute_checksum(data=packet_without_checksum)
 
         return self.ICMP_STRUCT.pack(
-            self.type,
-            self.code,
+            self.type.value,
+            self.CODE,
             checksum,
             self.identifier,
             self.sequence_number
