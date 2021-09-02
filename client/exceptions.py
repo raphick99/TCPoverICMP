@@ -1,2 +1,2 @@
-class ClientClosedException(Exception):
+class ClientClosedConnectionError(Exception):
     pass

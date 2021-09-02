@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from exceptions import ClientClosedException
+from exceptions import ClientClosedConnectionError
 
 
 log = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ class ClientSession(object):
 
     async def write(self, data: bytes):
         if self.writer.is_closing():
-            raise ClientClosedException()
+            raise ClientClosedConnectionError()
 
         log.debug(f'(client_id={self.client_id}): send(\'{data.decode()}\')')
         self.writer.write(data)

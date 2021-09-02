@@ -2,8 +2,9 @@ import asyncio
 import itertools
 import socket
 import logging
+
 import client_session
-from exceptions import ClientClosedException
+from exceptions import ClientClosedConnectionError
 
 
 log = logging.getLogger(__name__)
@@ -37,6 +38,7 @@ class Server(object):
     async def write_to_client(self, data: bytes, client_id: int):
         try:
             await self.clients[client_id].write(data)
-        except ClientClosedException:
-            # TODO Decide what to do in this senario, It means the client received a write from the ICMP part, and cannot forward it
+        except ClientClosedConnectionError:
+            # TODO Decide what to do in this scenario,
+            #  It means the client received a write from the ICMP part, and cannot forward it
             self.clients.pop(client_id)
