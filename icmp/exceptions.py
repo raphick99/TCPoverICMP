@@ -1,0 +1,2 @@
+class WrongChecksumOnICMPPacket(Exception):
+    pass
