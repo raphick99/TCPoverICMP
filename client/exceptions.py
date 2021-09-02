@@ -1,0 +1,2 @@
+class ClientClosedException(Exception):
+    pass
