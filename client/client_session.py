@@ -17,10 +17,10 @@ class ClientSession(object):
             incoming_from_tcp_channel: asyncio.Queue
     ):
         self.client_id = client_id
-        self.sequence_number = itertools.count()
         self.reader = reader
         self.writer = writer
         self.incoming_from_tcp_channel = incoming_from_tcp_channel
+        self.sequence_number = itertools.count()
 
     async def run(self):
         while True:
