@@ -1,8 +1,9 @@
 import struct
 import socket
 import enum
+from dataclasses import dataclass
 
-from exceptions import WrongChecksumOnICMPPacket, InvalidICMPCode
+from .exceptions import WrongChecksumOnICMPPacket, InvalidICMPCode
 
 
 class ICMPType(enum.Enum):
@@ -10,15 +11,15 @@ class ICMPType(enum.Enum):
     EchoRequest = 8
 
 
-class ICMPPacket(object):
+@dataclass
+class ICMPPacket:
+    type: ICMPType
+    identifier: int
+    sequence_number: int
+    payload: bytes
+
     ICMP_STRUCT = struct.Struct('>BBHHH')
     CODE = 0
-
-    def __init__(self, type: ICMPType, identifier: int, sequence_number: int, payload: bytes):
-        self.type = type
-        self.identifier = identifier
-        self.sequence_number = sequence_number
-        self.payload = payload
 
     @classmethod
     def deserialize(cls, packet: bytes):
