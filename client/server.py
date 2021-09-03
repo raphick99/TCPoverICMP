@@ -14,9 +14,9 @@ class Server(object):
     def __init__(self, host: str, port: int, incoming_queue: asyncio.Queue):
         self.host = host
         self.port = port
+        self.incoming_queue = incoming_queue
         self.clients = {}
         self._client_id = itertools.count()
-        self.incoming_queue = incoming_queue
 
     async def serve_forever(self):
         server = await asyncio.start_server(
