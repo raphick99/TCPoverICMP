@@ -17,7 +17,7 @@ class Forwarder(object):
         )
         self.tcp_server = server.Server(host, port, self.incoming_from_tcp_channel)
 
-    async def start(self):
+    async def run(self):
         await asyncio.gather(
             asyncio.create_task(self.handle_incoming_from_icmp_channel()),
             asyncio.create_task(self.handle_incoming_from_tcp_channel()),

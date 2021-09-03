@@ -9,7 +9,7 @@ log = logging.getLogger(__name__)
 
 
 async def main(host: str, port: int):
-    await forwarder.Forwarder(host, port).start()
+    await forwarder.Forwarder(host, port).run()
 
 
 if __name__ == '__main__':
