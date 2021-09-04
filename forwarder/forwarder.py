@@ -1,21 +1,23 @@
 import asyncio
 import logging
 
-import server
+from tcp import server, client_manager
 from icmp import icmp_socket, icmp_packet
 
 
 log = logging.getLogger(__name__)
 
 
-class Forwarder(object):
+class Forwarder:
     def __init__(self, host, port):
-        self.incoming_from_icmp_channel = asyncio.Queue(maxsize=0x64)
-        self.incoming_from_tcp_channel = asyncio.Queue(maxsize=0x100)
+        self.incoming_tcp_connections = asyncio.Queue(maxsize=1000)
+        self.incoming_from_icmp_channel = asyncio.Queue(maxsize=1000)
+        self.incoming_from_tcp_channel = asyncio.Queue(maxsize=1000)
         self.icmp_socket = icmp_socket.ICMPSocket(
             self.incoming_from_icmp_channel, '127.0.0.1'  # TODO have the endpoint be configurable
         )
-        self.tcp_server = server.Server(host, port, self.incoming_from_tcp_channel)
+        self.tcp_server = server.Server(host, port, self.incoming_tcp_connections)
+        self.client_manager = client_manager.ClientManager(self.incoming_tcp_connections, self.incoming_from_tcp_channel)
 
     async def run(self):
         await asyncio.gather(
@@ -23,13 +25,14 @@ class Forwarder(object):
             asyncio.create_task(self.handle_incoming_from_tcp_channel()),
             asyncio.create_task(self.icmp_socket.wait_for_incoming_packet()),
             asyncio.create_task(self.tcp_server.serve_forever()),
+            asyncio.create_task(self.client_manager.wait_for_new_connections()),
         )
 
     async def handle_incoming_from_icmp_channel(self):
         while True:
             new_icmp_packet = await self.incoming_from_icmp_channel.get()
             log.debug(f'received new packet from icmp. writing to client.')
-            await self.tcp_server.write_to_client(new_icmp_packet.payload, new_icmp_packet.identifier)
+            await self.client_manager.write_to_client(new_icmp_packet.payload, new_icmp_packet.identifier)
 
     async def handle_incoming_from_tcp_channel(self):
         while True:
