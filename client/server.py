@@ -38,7 +38,8 @@ class Server(object):
 
     async def write_to_client(self, data: bytes, client_id: int):
         try:
-            await self.clients[client_id].write(data)
+            if client_id in self.clients.keys():
+                await self.clients[client_id].write(data)
         except ClientClosedConnectionError:
             # TODO Decide what to do in this scenario,
             #  It means the client received a write from the ICMP part, and cannot forward it. Probably return a failure

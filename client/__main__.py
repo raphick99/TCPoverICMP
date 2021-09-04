@@ -13,4 +13,4 @@ async def main(host: str, port: int):
 
 
 if __name__ == '__main__':
-    asyncio.run(main('127.0.0.1', 13337))
+    asyncio.run(main('0.0.0.0', 13337))
