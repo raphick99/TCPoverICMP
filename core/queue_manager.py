@@ -40,13 +40,13 @@ class QueueManager:
     async def handle_incoming_from_icmp_channel(self):
         while True:
             new_icmp_packet = await self.incoming_from_icmp_channel.get()
-            log.debug(f'received new packet from icmp. writing to client.')
+            # log.debug(f'received new packet from icmp. writing to client.')
             await self.client_manager.write_to_client(new_icmp_packet.payload, new_icmp_packet.identifier)
 
     async def handle_incoming_from_tcp_channel(self):
         while True:
             data, client_id, seq_num = await self.incoming_from_tcp_channel.get()
-            log.debug(f'received from tcp channel: {data}, client_id: {client_id}, seq_num: {seq_num}')
+            # log.debug(f'received from tcp channel: {data}, client_id: {client_id}, seq_num: {seq_num}')
             new_icmp_packet = icmp_packet.ICMPPacket(
                 type=icmp_packet.ICMPType.EchoRequest,
                 identifier=client_id,

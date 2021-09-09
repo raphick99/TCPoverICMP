@@ -2,7 +2,7 @@ import asyncio
 import logging
 
 from tcp import client_session
-from exceptions import ClientClosedConnectionError
+from exceptions import ClientClosedConnectionError, WriteAttemptedToNonExistentClient
 
 
 log = logging.getLogger(__name__)
@@ -35,7 +35,6 @@ class ClientManager:
 
     def add_client(self, client_id: int, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         new_client_session = client_session.ClientSession(client_id, reader, writer, self.incoming_tcp_packet)
-        # self.clients[client_id] = client_session.ClientSession(client_id, reader, writer, self.incoming_tcp_packet)
         new_task = asyncio.create_task(new_client_session.run())
         self.clients[client_id] = new_client_session, new_task
         log.debug(f'new client running: client_id={client_id}')
@@ -49,9 +48,10 @@ class ClientManager:
             self.clients[client_id][1].cancel()
 
     async def write_to_client(self, data: bytes, client_id: int):
+        if not self.client_exists(client_id):
+            raise WriteAttemptedToNonExistentClient()
         try:
-            if self.client_exists(client_id):
-                await self.clients[client_id][0].write(data)
+            await self.clients[client_id][0].write(data)
         except ClientClosedConnectionError:
             # TODO Decide what to do in this scenario,
             #  It means the client received a write from the ICMP part, and cannot forward it. Probably return a failure

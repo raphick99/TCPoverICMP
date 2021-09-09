@@ -1,4 +1,3 @@
-import asyncio
 import logging
 
 from core import queue_manager
