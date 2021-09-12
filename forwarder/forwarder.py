@@ -18,9 +18,6 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
         self.destination_port = destination_port
         self.incoming_tcp_connections = asyncio.Queue(maxsize=1000)
         self.tcp_server = server.Server(host, port, self.incoming_tcp_connections)
-        self.coroutines_to_run.append(self.tcp_server.serve_forever())
-        self.coroutines_to_run.append(self.handle_incoming_from_icmp_channel())
-        self.coroutines_to_run.append(self.handle_incoming_from_tcp_channel())
         self.coroutines_to_run.append(self.wait_for_new_connection())
 
     @property
@@ -31,30 +28,18 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
     def direction(self):
         return Tunnel.Direction.to_proxy
 
-    async def handle_incoming_from_icmp_channel(self):
-        while True:
-            new_icmp_packet = await self.incoming_from_icmp_channel.get()
-            if not self.client_manager.client_exists(new_icmp_packet.identifier):
-                log.debug('received icmp packet that isnt meant for me.')
-                continue
-            tunnel_packet = Tunnel()
-            tunnel_packet.ParseFromString(new_icmp_packet.payload)
-            log.debug(f'received {tunnel_packet}')
+    def handle_start_request(self, tunnel_packet):
+        log.debug('invalid start command. ignoring')
 
-            if tunnel_packet.direction == Tunnel.Direction.to_proxy:
-                log.debug('ignoring packet headed in the wrong direction')
-                continue
+    def handle_end_request(self, tunnel_packet):
+        self.client_manager.remove_client(tunnel_packet.identifier)
 
-            if tunnel_packet.state == Tunnel.State.start:
-                log.debug('invalid start command. ignoring')
-                continue
-            elif tunnel_packet.state == Tunnel.State.end:
-                self.client_manager.remove_client(new_icmp_packet.identifier)
-            elif tunnel_packet.state == Tunnel.State.data:
-                await self.client_manager.write_to_client(tunnel_packet.payload, new_icmp_packet.identifier)
-            elif tunnel_packet.state == Tunnel.State.ack:
-                # currently not doing anything with acks
-                pass
+    def handle_data_request(self, tunnel_packet):
+        # await self.client_manager.write_to_client(tunnel_packet.payload, new_icmp_packet.identifier)
+        pass
+
+    def handle_ack_request(self, tunnel_packet):
+        pass
 
     async def wait_for_new_connection(self):
         while True:

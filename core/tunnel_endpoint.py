@@ -43,15 +43,49 @@ class TunnelEndpoint:
     def direction(self):
         raise NotImplementedError()
 
+    def handle_start_request(self, tunnel_packet):
+        raise NotImplementedError()
+
+    def handle_end_request(self, tunnel_packet):
+        raise NotImplementedError()
+
+    def handle_data_request(self, tunnel_packet):
+        raise NotImplementedError()
+
+    def handle_ack_request(self, tunnel_packet):
+        raise NotImplementedError()
+
     async def run(self):
         constant_coroutines = [
-            self.wait_for_stale_connection(),
             self.handle_incoming_from_tcp_channel(),
+            self.handle_incoming_from_icmp_channel(),
+            self.wait_for_stale_connection(),
             self.icmp_socket.wait_for_incoming_packet(),
         ]
         running_tasks = [asyncio.create_task(coroutine) for coroutine in self.coroutines_to_run + constant_coroutines]
 
         await asyncio.gather(*running_tasks)
+
+    async def handle_incoming_from_icmp_channel(self):
+        while True:
+            new_icmp_packet = await self.incoming_from_icmp_channel.get()
+            self.send_ack(new_icmp_packet)
+
+            tunnel_packet = Tunnel()
+            tunnel_packet.ParseFromString(new_icmp_packet.payload)
+            log.debug(f'received {tunnel_packet}')
+
+            if tunnel_packet.direction == self.direction:
+                log.debug('ignoring packet headed in the wrong direction')
+                continue
+
+            {
+                Tunnel.State.start: self.handle_start_request,
+                Tunnel.State.end: self.handle_end_request,
+                Tunnel.State.data: self.handle_data_request,
+                Tunnel.State.ack: self.handle_ack_request,
+
+            }[tunnel_packet.state](tunnel_packet)
 
     async def handle_incoming_from_tcp_channel(self):
         while True:
@@ -80,6 +114,21 @@ class TunnelEndpoint:
 
             self.send_icmp_packet(icmp_packet.ICMPType.EchoRequest, client_id, 0, new_tunnel_packet.SerializeToString())
             self.client_manager.remove_client(client_id)
+
+    def send_ack(self, new_icmp_packet):
+        new_tunnel_packet = Tunnel(
+            ip='',
+            port=0,
+            state=Tunnel.State.ack,
+            direction=self.direction,
+            payload=b'',
+        )
+        self.send_icmp_packet(
+            icmp_packet.ICMPType.EchoReply,
+            new_icmp_packet.identifier,
+            new_icmp_packet.sequence_number,
+            new_tunnel_packet.SerializeToString(),
+        )
 
     def send_icmp_packet(
             self,
