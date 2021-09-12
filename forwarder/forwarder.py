@@ -27,6 +27,10 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
     def other_endpoint(self):
         return '192.168.23.153'
 
+    @property
+    def direction(self):
+        return Tunnel.Direction.to_proxy
+
     async def handle_incoming_from_icmp_channel(self):
         while True:
             new_icmp_packet = await self.incoming_from_icmp_channel.get()
@@ -45,7 +49,6 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
                 log.debug('invalid start command. ignoring')
                 continue
             elif tunnel_packet.state == Tunnel.State.end:
-                log.debug(f'received end command. ending {new_icmp_packet.identifier}')
                 self.client_manager.remove_client(new_icmp_packet.identifier)
             elif tunnel_packet.state == Tunnel.State.data:
                 await self.client_manager.write_to_client(tunnel_packet.payload, new_icmp_packet.identifier)
@@ -73,22 +76,3 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
             self.icmp_socket.sendto(new_icmp_packet)
 
             self.client_manager.add_client(client_id, reader, writer)
-
-    async def handle_incoming_from_tcp_channel(self):
-        while True:
-            data, client_id, seq_num = await self.incoming_from_tcp_channel.get()
-
-            new_tunnel_packet = Tunnel(
-                ip='',
-                port=0,
-                state=Tunnel.State.data,
-                direction=Tunnel.Direction.to_proxy,
-                payload=data,
-            )
-            new_icmp_packet = icmp_packet.ICMPPacket(
-                type=icmp_packet.ICMPType.EchoRequest,
-                identifier=client_id,
-                sequence_number=seq_num,
-                payload=new_tunnel_packet.SerializeToString(),
-            )
-            self.icmp_socket.sendto(new_icmp_packet)

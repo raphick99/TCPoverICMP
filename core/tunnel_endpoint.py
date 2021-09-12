@@ -35,10 +35,15 @@ class TunnelEndpoint:
 
         self.coroutines_to_run = []
         self.coroutines_to_run.append(self.wait_for_stale_connection())
+        self.coroutines_to_run.append(self.handle_incoming_from_tcp_channel())
 
     @property
     def other_endpoint(self):
-        return '0.0.0.0'
+        raise NotImplementedError()
+
+    @property
+    def direction(self):
+        raise NotImplementedError()
 
     async def run(self):
         constant_coroutines = [
@@ -48,6 +53,25 @@ class TunnelEndpoint:
 
         await asyncio.gather(*running_tasks)
 
+    async def handle_incoming_from_tcp_channel(self):
+        while True:
+            data, client_id, seq_num = await self.incoming_from_tcp_channel.get()
+
+            new_tunnel_packet = Tunnel(
+                ip='',
+                port=0,
+                state=Tunnel.State.data,
+                direction=self.direction,
+                payload=data,
+            )
+            new_icmp_packet = icmp_packet.ICMPPacket(
+                type=icmp_packet.ICMPType.EchoRequest,
+                identifier=client_id,
+                sequence_number=seq_num,
+                payload=new_tunnel_packet.SerializeToString(),
+            )
+            self.icmp_socket.sendto(new_icmp_packet)
+
     async def wait_for_stale_connection(self):
         while True:
             client_id = await self.stale_tcp_connections.get()
@@ -56,7 +80,7 @@ class TunnelEndpoint:
                 ip='',
                 port=0,
                 state=Tunnel.State.end,
-                direction=Tunnel.Direction.to_proxy,
+                direction=self.direction,
                 payload=b'',
             )
 

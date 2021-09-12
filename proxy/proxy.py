@@ -14,11 +14,14 @@ class Proxy(tunnel_endpoint.TunnelEndpoint):
         super(Proxy, self).__init__()
         self.coroutines_to_run.append(self.handle_incoming_from_icmp_channel())
         self.coroutines_to_run.append(self.handle_incoming_from_tcp_channel())
-        self.coroutines_to_run.append(self.wait_for_stale_connection())
 
     @property
     def other_endpoint(self):
         return '192.168.23.152'
+
+    @property
+    def direction(self):
+        return Tunnel.Direction.to_forwarder
 
     async def handle_incoming_from_icmp_channel(self):
         while True:
@@ -48,44 +51,3 @@ class Proxy(tunnel_endpoint.TunnelEndpoint):
             elif tunnel_packet.state == Tunnel.State.ack:
                 # currently not doing anything with acks
                 pass
-
-    async def handle_incoming_from_tcp_channel(self):
-        while True:
-            data, client_id, seq_num = await self.incoming_from_tcp_channel.get()
-
-            new_tunnel_packet = Tunnel(
-                ip='',
-                port=0,
-                state=Tunnel.State.data,
-                direction=Tunnel.Direction.to_forwarder,
-                payload=data,
-            )
-            new_icmp_packet = icmp_packet.ICMPPacket(
-                type=icmp_packet.ICMPType.EchoRequest,
-                identifier=client_id,
-                sequence_number=seq_num,
-                payload=new_tunnel_packet.SerializeToString(),
-            )
-            self.icmp_socket.sendto(new_icmp_packet)
-
-    async def wait_for_stale_connection(self):
-        while True:
-            client_id = await self.stale_tcp_connections.get()
-
-            new_tunnel_packet = Tunnel(
-                ip='',
-                port=0,
-                state=Tunnel.State.end,
-                direction=Tunnel.Direction.to_forwarder,
-                payload=b'',
-            )
-
-            new_icmp_packet = icmp_packet.ICMPPacket(
-                type=icmp_packet.ICMPType.EchoRequest,
-                identifier=client_id,
-                sequence_number=0,
-                payload=new_tunnel_packet.SerializeToString(),
-            )
-            self.icmp_socket.sendto(new_icmp_packet)
-
-            self.client_manager.remove_client(client_id)
