@@ -48,7 +48,7 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
             new_tunnel_packet = Tunnel(
                 ip=self.destination_host,
                 port=self.destination_port,
-                state=Tunnel.State.start,
+                action=Tunnel.Action.start,
                 direction=Tunnel.Direction.to_proxy,
                 payload=b'',
             )

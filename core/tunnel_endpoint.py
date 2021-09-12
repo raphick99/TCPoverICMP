@@ -80,12 +80,12 @@ class TunnelEndpoint:
                 continue
 
             {
-                Tunnel.State.start: self.handle_start_request,
-                Tunnel.State.end: self.handle_end_request,
-                Tunnel.State.data: self.handle_data_request,
-                Tunnel.State.ack: self.handle_ack_request,
+                Tunnel.Action.start: self.handle_start_request,
+                Tunnel.Action.end: self.handle_end_request,
+                Tunnel.Action.data: self.handle_data_request,
+                Tunnel.Action.ack: self.handle_ack_request,
 
-            }[tunnel_packet.state](tunnel_packet)
+            }[tunnel_packet.action](tunnel_packet)
 
     async def handle_incoming_from_tcp_channel(self):
         while True:
@@ -94,7 +94,7 @@ class TunnelEndpoint:
             new_tunnel_packet = Tunnel(
                 ip='',
                 port=0,
-                state=Tunnel.State.data,
+                action=Tunnel.Action.data,
                 direction=self.direction,
                 payload=data,
             )
@@ -107,7 +107,7 @@ class TunnelEndpoint:
             new_tunnel_packet = Tunnel(
                 ip='',
                 port=0,
-                state=Tunnel.State.end,
+                action=Tunnel.Action.end,
                 direction=self.direction,
                 payload=b'',
             )
@@ -119,7 +119,7 @@ class TunnelEndpoint:
         new_tunnel_packet = Tunnel(
             ip='',
             port=0,
-            state=Tunnel.State.ack,
+            action=Tunnel.Action.ack,
             direction=self.direction,
             payload=b'',
         )

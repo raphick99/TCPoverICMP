@@ -1,8 +1,9 @@
+// protoc -I=./proto --python_out=./proto ./proto/tunnel.proto
 syntax = "proto2";
 
 message Tunnel
 {
-  enum State
+  enum Action
   {
     start = 0;
     end = 1;
@@ -16,9 +17,11 @@ message Tunnel
     to_forwarder = 1;
   }
 
-  optional string ip = 1;
-  optional uint32 port = 2;
-  optional State state = 3;
+  optional uint32 client_id = 1;
+  optional uint32 sequence_number = 2;
+  optional Action action = 3;
   optional Direction direction = 4;
-  optional bytes payload = 5;
+  optional string ip = 5;
+  optional uint32 port = 6;
+  optional bytes payload = 7;
 }

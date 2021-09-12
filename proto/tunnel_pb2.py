@@ -19,14 +19,14 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='',
   syntax='proto2',
   serialized_options=None,
-  serialized_pb=_b('\n\x0ctunnel.proto\"\xd4\x01\n\x06Tunnel\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x1c\n\x05state\x18\x03 \x01(\x0e\x32\r.Tunnel.State\x12$\n\tdirection\x18\x04 \x01(\x0e\x32\x11.Tunnel.Direction\x12\x0f\n\x07payload\x18\x05 \x01(\x0c\".\n\x05State\x12\t\n\x05start\x10\x00\x12\x07\n\x03\x65nd\x10\x01\x12\x08\n\x04\x64\x61ta\x10\x02\x12\x07\n\x03\x61\x63k\x10\x03\"+\n\tDirection\x12\x0c\n\x08to_proxy\x10\x00\x12\x10\n\x0cto_forwarder\x10\x01')
+  serialized_pb=_b('\n\x0ctunnel.proto\"\x83\x02\n\x06Tunnel\x12\x11\n\tclient_id\x18\x01 \x01(\r\x12\x17\n\x0fsequence_number\x18\x02 \x01(\r\x12\x1e\n\x06\x61\x63tion\x18\x03 \x01(\x0e\x32\x0e.Tunnel.Action\x12$\n\tdirection\x18\x04 \x01(\x0e\x32\x11.Tunnel.Direction\x12\n\n\x02ip\x18\x05 \x01(\t\x12\x0c\n\x04port\x18\x06 \x01(\r\x12\x0f\n\x07payload\x18\x07 \x01(\x0c\"/\n\x06\x41\x63tion\x12\t\n\x05start\x10\x00\x12\x07\n\x03\x65nd\x10\x01\x12\x08\n\x04\x64\x61ta\x10\x02\x12\x07\n\x03\x61\x63k\x10\x03\"+\n\tDirection\x12\x0c\n\x08to_proxy\x10\x00\x12\x10\n\x0cto_forwarder\x10\x01')
 )
 
 
 
-_TUNNEL_STATE = _descriptor.EnumDescriptor(
-  name='State',
-  full_name='Tunnel.State',
+_TUNNEL_ACTION = _descriptor.EnumDescriptor(
+  name='Action',
+  full_name='Tunnel.Action',
   filename=None,
   file=DESCRIPTOR,
   values=[
@@ -49,10 +49,10 @@ _TUNNEL_STATE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=138,
-  serialized_end=184,
+  serialized_start=184,
+  serialized_end=231,
 )
-_sym_db.RegisterEnumDescriptor(_TUNNEL_STATE)
+_sym_db.RegisterEnumDescriptor(_TUNNEL_ACTION)
 
 _TUNNEL_DIRECTION = _descriptor.EnumDescriptor(
   name='Direction',
@@ -71,8 +71,8 @@ _TUNNEL_DIRECTION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=186,
-  serialized_end=229,
+  serialized_start=233,
+  serialized_end=276,
 )
 _sym_db.RegisterEnumDescriptor(_TUNNEL_DIRECTION)
 
@@ -85,21 +85,21 @@ _TUNNEL = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='ip', full_name='Tunnel.ip', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
+      name='client_id', full_name='Tunnel.client_id', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='port', full_name='Tunnel.port', index=1,
+      name='sequence_number', full_name='Tunnel.sequence_number', index=1,
       number=2, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='state', full_name='Tunnel.state', index=2,
+      name='action', full_name='Tunnel.action', index=2,
       number=3, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -113,8 +113,22 @@ _TUNNEL = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='payload', full_name='Tunnel.payload', index=4,
-      number=5, type=12, cpp_type=9, label=1,
+      name='ip', full_name='Tunnel.ip', index=4,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='port', full_name='Tunnel.port', index=5,
+      number=6, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='payload', full_name='Tunnel.payload', index=6,
+      number=7, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -124,7 +138,7 @@ _TUNNEL = _descriptor.Descriptor(
   ],
   nested_types=[],
   enum_types=[
-    _TUNNEL_STATE,
+    _TUNNEL_ACTION,
     _TUNNEL_DIRECTION,
   ],
   serialized_options=None,
@@ -134,12 +148,12 @@ _TUNNEL = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=17,
-  serialized_end=229,
+  serialized_end=276,
 )
 
-_TUNNEL.fields_by_name['state'].enum_type = _TUNNEL_STATE
+_TUNNEL.fields_by_name['action'].enum_type = _TUNNEL_ACTION
 _TUNNEL.fields_by_name['direction'].enum_type = _TUNNEL_DIRECTION
-_TUNNEL_STATE.containing_type = _TUNNEL
+_TUNNEL_ACTION.containing_type = _TUNNEL
 _TUNNEL_DIRECTION.containing_type = _TUNNEL
 DESCRIPTOR.message_types_by_name['Tunnel'] = _TUNNEL
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
