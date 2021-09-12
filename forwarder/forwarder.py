@@ -28,17 +28,17 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
     def direction(self):
         return Tunnel.Direction.to_proxy
 
-    def handle_start_request(self, tunnel_packet):
+    async def handle_start_request(self, tunnel_packet):
         log.debug('invalid start command. ignoring')
 
-    def handle_end_request(self, tunnel_packet):
+    async def handle_end_request(self, tunnel_packet):
         self.client_manager.remove_client(tunnel_packet.identifier)
 
-    def handle_data_request(self, tunnel_packet):
+    async def handle_data_request(self, tunnel_packet):
         # await self.client_manager.write_to_client(tunnel_packet.payload, new_icmp_packet.identifier)
         pass
 
-    def handle_ack_request(self, tunnel_packet):
+    async def handle_ack_request(self, tunnel_packet):
         pass
 
     async def wait_for_new_connection(self):

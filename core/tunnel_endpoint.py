@@ -43,16 +43,16 @@ class TunnelEndpoint:
     def direction(self):
         raise NotImplementedError()
 
-    def handle_start_request(self, tunnel_packet):
+    async def handle_start_request(self, tunnel_packet):
         raise NotImplementedError()
 
-    def handle_end_request(self, tunnel_packet):
+    async def handle_end_request(self, tunnel_packet):
         raise NotImplementedError()
 
-    def handle_data_request(self, tunnel_packet):
+    async def handle_data_request(self, tunnel_packet):
         raise NotImplementedError()
 
-    def handle_ack_request(self, tunnel_packet):
+    async def handle_ack_request(self, tunnel_packet):
         raise NotImplementedError()
 
     async def run(self):
@@ -79,13 +79,14 @@ class TunnelEndpoint:
                 log.debug('ignoring packet headed in the wrong direction')
                 continue
 
-            {
+            actions = {
                 Tunnel.Action.start: self.handle_start_request,
                 Tunnel.Action.end: self.handle_end_request,
                 Tunnel.Action.data: self.handle_data_request,
                 Tunnel.Action.ack: self.handle_ack_request,
 
-            }[tunnel_packet.action](tunnel_packet)
+            }
+            await actions[tunnel_packet.action](tunnel_packet)
 
     async def handle_incoming_from_tcp_channel(self):
         while True:

@@ -17,7 +17,7 @@ class Proxy(tunnel_endpoint.TunnelEndpoint):
     def direction(self):
         return Tunnel.Direction.to_forwarder
 
-    def handle_start_request(self, tunnel_packet):
+    async def handle_start_request(self, tunnel_packet):
         reader, writer = await asyncio.open_connection(tunnel_packet.ip, tunnel_packet.port)
         # log.debug(f'received start command. (client_id={new_icmp_packet.identifier}'
         #           f') connecting to {tunnel_packet.ip}:{tunnel_packet.port}')
@@ -27,11 +27,11 @@ class Proxy(tunnel_endpoint.TunnelEndpoint):
             writer=writer,
         )
 
-    def handle_end_request(self, tunnel_packet):
+    async def handle_end_request(self, tunnel_packet):
         self.client_manager.remove_client(new_icmp_packet.identifier)
 
-    def handle_data_request(self, tunnel_packet):
+    async def handle_data_request(self, tunnel_packet):
         await self.client_manager.write_to_client(tunnel_packet.payload, new_icmp_packet.identifier)
 
-    def handle_ack_request(self, tunnel_packet):
+    async def handle_ack_request(self, tunnel_packet):
         pass
