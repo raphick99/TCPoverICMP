@@ -24,9 +24,7 @@ class TunnelEndpoint:
         self.stale_tcp_connections = asyncio.Queue(maxsize=1000)
         self.incoming_from_icmp_channel = asyncio.Queue(maxsize=1000)
         self.incoming_from_tcp_channel = asyncio.Queue(maxsize=1000)
-        self.icmp_socket = icmp_socket.ICMPSocket(
-            self.incoming_from_icmp_channel, self.other_endpoint  # TODO have the endpoint be configurable
-        )
+        self.icmp_socket = icmp_socket.ICMPSocket(self.incoming_from_icmp_channel)
 
         self.client_manager = client_manager.ClientManager(
             self.stale_tcp_connections,
