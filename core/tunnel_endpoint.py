@@ -43,16 +43,16 @@ class TunnelEndpoint:
     def direction(self):
         raise NotImplementedError()
 
-    async def handle_start_request(self, tunnel_packet):
+    async def handle_start_request(self, tunnel_packet: Tunnel):
         raise NotImplementedError()
 
-    async def handle_end_request(self, tunnel_packet):
+    async def handle_end_request(self, tunnel_packet: Tunnel):
         raise NotImplementedError()
 
-    async def handle_data_request(self, tunnel_packet):
+    async def handle_data_request(self, tunnel_packet: Tunnel):
         raise NotImplementedError()
 
-    async def handle_ack_request(self, tunnel_packet):
+    async def handle_ack_request(self, tunnel_packet: Tunnel):
         raise NotImplementedError()
 
     async def run(self):
