@@ -10,7 +10,7 @@ from proto import Tunnel
 log = logging.getLogger(__name__)
 
 
-class Forwarder(queue_manager.QueueManager):
+class Forwarder(queue_manager.TunnelEndpoint):
     def __init__(self, host, port, destination_host, destination_port):
         super(Forwarder, self).__init__()
         log.info(f'forwarding to {destination_host}:{destination_port}')

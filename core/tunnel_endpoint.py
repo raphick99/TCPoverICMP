@@ -9,7 +9,17 @@ from proto import Tunnel
 log = logging.getLogger(__name__)
 
 
-class QueueManager:
+def consume_queue(queue_to_consume):
+    def wrap_function(f):
+        async def wrapper(*_, **__):
+            while True:
+                args = await queue_to_consume.get()
+                await f(*args)
+        return wrapper
+    return wrap_function
+
+
+class TunnelEndpoint:
     def __init__(self):
         self.stale_tcp_connections = asyncio.Queue(maxsize=1000)
         self.incoming_from_icmp_channel = asyncio.Queue(maxsize=1000)

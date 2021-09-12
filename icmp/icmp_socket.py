@@ -29,7 +29,7 @@ class ICMPSocket(object):
         if data == '':
             pass
             # TODO This shouldnt happen. What if it does?
-        log.debug(f'received packet over ICMP: {data.hex()}')
+        # log.debug(f'received packet over ICMP: {data.hex()}')
         return icmp_packet.ICMPPacket.deserialize(data[self.IP_HEADER_LENGTH:])
 
     async def wait_for_incoming_packet(self):

@@ -9,7 +9,7 @@ from proto import Tunnel
 log = logging.getLogger(__name__)
 
 
-class Proxy(queue_manager.QueueManager):
+class Proxy(queue_manager.TunnelEndpoint):
     def __init__(self):
         super(Proxy, self).__init__()
         self.coroutines_to_run.append(self.handle_incoming_from_icmp_channel())
