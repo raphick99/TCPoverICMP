@@ -2,7 +2,6 @@ import asyncio
 import logging
 
 from core import tunnel_endpoint
-from icmp import icmp_packet
 from proto import Tunnel
 
 

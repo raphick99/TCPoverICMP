@@ -64,13 +64,7 @@ class TunnelEndpoint:
                 direction=self.direction,
                 payload=data,
             )
-            new_icmp_packet = icmp_packet.ICMPPacket(
-                type=icmp_packet.ICMPType.EchoRequest,
-                identifier=client_id,
-                sequence_number=seq_num,
-                payload=new_tunnel_packet.SerializeToString(),
-            )
-            self.icmp_socket.sendto(new_icmp_packet)
+            self.send_icmp_packet(icmp_packet.ICMPType.EchoRequest, client_id, seq_num, new_tunnel_packet.SerializeToString())
 
     async def wait_for_stale_connection(self):
         while True:
@@ -84,12 +78,20 @@ class TunnelEndpoint:
                 payload=b'',
             )
 
-            new_icmp_packet = icmp_packet.ICMPPacket(
-                type=icmp_packet.ICMPType.EchoRequest,
-                identifier=client_id,
-                sequence_number=0,
-                payload=new_tunnel_packet.SerializeToString(),
-            )
-            self.icmp_socket.sendto(new_icmp_packet)
-
+            self.send_icmp_packet(icmp_packet.ICMPType.EchoRequest, client_id, 0, new_tunnel_packet.SerializeToString())
             self.client_manager.remove_client(client_id)
+
+    def send_icmp_packet(
+            self,
+            type: icmp_packet.ICMPType,
+            identifier: int,
+            sequence_number: int,
+            payload: bytes
+    ):
+        new_icmp_packet = icmp_packet.ICMPPacket(
+            type=type,
+            identifier=identifier,
+            sequence_number=sequence_number,
+            payload=payload
+        )
+        self.icmp_socket.sendto(new_icmp_packet, self.other_endpoint)

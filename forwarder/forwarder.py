@@ -67,12 +67,5 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
                 direction=Tunnel.Direction.to_proxy,
                 payload=b'',
             )
-            new_icmp_packet = icmp_packet.ICMPPacket(
-                type=icmp_packet.ICMPType.EchoRequest,
-                identifier=client_id,
-                sequence_number=0,
-                payload=new_tunnel_packet.SerializeToString(),
-            )
-            self.icmp_socket.sendto(new_icmp_packet)
-
+            self.send_icmp_packet(icmp_packet.ICMPType.EchoRequest, client_id, 0, new_tunnel_packet.SerializeToString())
             self.client_manager.add_client(client_id, reader, writer)
