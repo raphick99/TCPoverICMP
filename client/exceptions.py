@@ -1,2 +1,0 @@
-class ClientClosedConnectionError(Exception):
-    pass

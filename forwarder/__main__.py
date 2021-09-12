@@ -9,8 +9,8 @@ log = logging.getLogger(__name__)
 
 
 async def main(host: str, port: int):
-    await forwarder.Forwarder(host, port).run()
+    await forwarder.Forwarder(host, port, '192.168.23.153', 8080).run()
 
 
 if __name__ == '__main__':
-    asyncio.run(main('127.0.0.1', 13337))
+    asyncio.run(main('0.0.0.0', 13337))

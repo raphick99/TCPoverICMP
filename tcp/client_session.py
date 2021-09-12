@@ -8,7 +8,7 @@ from exceptions import ClientClosedConnectionError
 log = logging.getLogger(__name__)
 
 
-class ClientSession(object):
+class ClientSession:
     def __init__(
             self,
             client_id: int,
@@ -21,9 +21,11 @@ class ClientSession(object):
         self.writer = writer
         self.incoming_from_tcp_channel = incoming_from_tcp_channel
         self.sequence_number = itertools.count()
+        self.should_run = False
 
     async def run(self):
-        while True:
+        self.should_run = True
+        while self.should_run:
             try:
                 data = await self.reader.read(1024)
             except ConnectionResetError:
@@ -38,6 +40,12 @@ class ClientSession(object):
 
             log.debug(f'(client_id={self.client_id}): recv(\'{data.decode()}\')')
             await self.incoming_from_tcp_channel.put((data, self.client_id, next(self.sequence_number)))
+
+    async def stop(self):
+        # Note: Will stop on next run. if stuck on the read, this isnt good.maybe the read should have a timeout.
+        self.should_run = False
+        self.writer.close()
+        await self.writer.wait_closed()
 
     async def write(self, data: bytes):
         if self.writer.is_closing():

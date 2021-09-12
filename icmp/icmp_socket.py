@@ -1,8 +1,9 @@
 import asyncio
 import socket
 import logging
+import contextlib
 
-from . import icmp_packet
+from . import icmp_packet, exceptions
 
 
 log = logging.getLogger(__name__)
@@ -29,13 +30,14 @@ class ICMPSocket(object):
         if data == '':
             pass
             # TODO This shouldnt happen. What if it does?
-        log.debug(f'received packet over ICMP: {data.hex()}')
+        # log.debug(f'received packet over ICMP: {data.hex()}')
         return icmp_packet.ICMPPacket.deserialize(data[self.IP_HEADER_LENGTH:])
 
     async def wait_for_incoming_packet(self):
         while True:
-            packet = await self.recv()
-            await self.incoming_queue.put(packet)
+            with contextlib.suppress(exceptions.InvalidICMPCode):
+                packet = await self.recv()
+                await self.incoming_queue.put(packet)
 
     def sendto(self, packet: icmp_packet.ICMPPacket, destination: str = None):
         destination = destination or self.endpoint_address
