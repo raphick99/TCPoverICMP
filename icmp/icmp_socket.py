@@ -1,8 +1,9 @@
 import asyncio
 import socket
 import logging
+import contextlib
 
-from . import icmp_packet
+from . import icmp_packet, exceptions
 
 
 log = logging.getLogger(__name__)
@@ -34,8 +35,9 @@ class ICMPSocket(object):
 
     async def wait_for_incoming_packet(self):
         while True:
-            packet = await self.recv()
-            await self.incoming_queue.put(packet)
+            with contextlib.suppress(exceptions.InvalidICMPCode):
+                packet = await self.recv()
+                await self.incoming_queue.put(packet)
 
     def sendto(self, packet: icmp_packet.ICMPPacket, destination: str = None):
         destination = destination or self.endpoint_address
