@@ -34,8 +34,6 @@ class TunnelEndpoint:
         )
 
         self.coroutines_to_run = []
-        self.coroutines_to_run.append(self.wait_for_stale_connection())
-        self.coroutines_to_run.append(self.handle_incoming_from_tcp_channel())
 
     @property
     def other_endpoint(self):
@@ -47,6 +45,8 @@ class TunnelEndpoint:
 
     async def run(self):
         constant_coroutines = [
+            self.wait_for_stale_connection(),
+            self.handle_incoming_from_tcp_channel(),
             self.icmp_socket.wait_for_incoming_packet(),
         ]
         running_tasks = [asyncio.create_task(coroutine) for coroutine in self.coroutines_to_run + constant_coroutines]
