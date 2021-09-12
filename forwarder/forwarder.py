@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from core import queue_manager
+from core import tunnel_endpoint
 from tcp import server
 from icmp import icmp_packet
 from proto import Tunnel
@@ -10,7 +10,7 @@ from proto import Tunnel
 log = logging.getLogger(__name__)
 
 
-class Forwarder(queue_manager.TunnelEndpoint):
+class Forwarder(tunnel_endpoint.TunnelEndpoint):
     def __init__(self, host, port, destination_host, destination_port):
         super(Forwarder, self).__init__()
         log.info(f'forwarding to {destination_host}:{destination_port}')

@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from core import queue_manager
+from core import tunnel_endpoint
 from icmp import icmp_packet
 from proto import Tunnel
 
@@ -9,7 +9,7 @@ from proto import Tunnel
 log = logging.getLogger(__name__)
 
 
-class Proxy(queue_manager.TunnelEndpoint):
+class Proxy(tunnel_endpoint.TunnelEndpoint):
     def __init__(self):
         super(Proxy, self).__init__()
         self.coroutines_to_run.append(self.handle_incoming_from_icmp_channel())

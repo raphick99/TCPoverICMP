@@ -27,6 +27,7 @@ class TunnelEndpoint:
         self.icmp_socket = icmp_socket.ICMPSocket(
             self.incoming_from_icmp_channel, self.other_endpoint  # TODO have the endpoint be configurable
         )
+
         self.client_manager = client_manager.ClientManager(
             self.stale_tcp_connections,
             self.incoming_from_tcp_channel
