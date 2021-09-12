@@ -1,1 +1,1 @@
-from tunnel_pb2 import Tunnel
+from .tunnel_pb2 import Tunnel

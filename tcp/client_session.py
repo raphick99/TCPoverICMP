@@ -44,6 +44,8 @@ class ClientSession:
     async def stop(self):
         # Note: Will stop on next run. if stuck on the read, this isnt good.maybe the read should have a timeout.
         self.should_run = False
+        self.writer.close()
+        await self.writer.wait_closed()
 
     async def write(self, data: bytes):
         if self.writer.is_closing():
