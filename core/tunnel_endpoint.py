@@ -69,10 +69,15 @@ class TunnelEndpoint:
     async def handle_incoming_from_icmp_channel(self):
         while True:
             new_icmp_packet = await self.incoming_from_icmp_channel.get()
-            self.send_ack(new_icmp_packet)
+            if new_icmp_packet.identifier != 0xcafe or new_icmp_packet.sequence_number != 0xbabe:
+                log.debug(f'wrong magic (identifier={new_icmp_packet.identifer})'
+                          f'(seq_num={new_icmp_packet.sequence_number}), ignoring')
+                continue
 
             tunnel_packet = Tunnel()
             tunnel_packet.ParseFromString(new_icmp_packet.payload)
+            if tunnel_packet.action != Tunnel.Action.ack:
+                self.send_ack(tunnel_packet)
             log.debug(f'received {tunnel_packet}')
 
             if tunnel_packet.direction == self.direction:
@@ -90,58 +95,59 @@ class TunnelEndpoint:
 
     async def handle_incoming_from_tcp_channel(self):
         while True:
-            data, client_id, seq_num = await self.incoming_from_tcp_channel.get()
+            data, client_id, sequence_number = await self.incoming_from_tcp_channel.get()
 
             new_tunnel_packet = Tunnel(
-                ip='',
-                port=0,
+                client_id=client_id,
+                sequence_number=sequence_number,
                 action=Tunnel.Action.data,
                 direction=self.direction,
+                ip='',
+                port=0,
                 payload=data,
             )
-            self.send_icmp_packet(icmp_packet.ICMPType.EchoRequest, client_id, seq_num, new_tunnel_packet.SerializeToString())
+            self.send_icmp_packet(icmp_packet.ICMPType.EchoRequest, new_tunnel_packet.SerializeToString())
 
     async def wait_for_stale_connection(self):
         while True:
             client_id = await self.stale_tcp_connections.get()
 
             new_tunnel_packet = Tunnel(
-                ip='',
-                port=0,
+                client_id=client_id,
                 action=Tunnel.Action.end,
                 direction=self.direction,
+                ip='',
+                port=0,
                 payload=b'',
             )
 
-            self.send_icmp_packet(icmp_packet.ICMPType.EchoRequest, client_id, 0, new_tunnel_packet.SerializeToString())
+            self.send_icmp_packet(icmp_packet.ICMPType.EchoRequest, new_tunnel_packet.SerializeToString())
             self.client_manager.remove_client(client_id)
 
-    def send_ack(self, new_icmp_packet):
+    def send_ack(self, tunnel_packet):
         new_tunnel_packet = Tunnel(
-            ip='',
-            port=0,
+            client_id=tunnel_packet.client_id,
+            sequence_number=tunnel_packet.sequence_number,
             action=Tunnel.Action.ack,
             direction=self.direction,
+            ip='',
+            port=0,
             payload=b'',
         )
         self.send_icmp_packet(
             icmp_packet.ICMPType.EchoReply,
-            new_icmp_packet.identifier,
-            new_icmp_packet.sequence_number,
             new_tunnel_packet.SerializeToString(),
         )
 
     def send_icmp_packet(
             self,
             type: icmp_packet.ICMPType,
-            identifier: int,
-            sequence_number: int,
             payload: bytes
     ):
         new_icmp_packet = icmp_packet.ICMPPacket(
             type=type,
-            identifier=identifier,
-            sequence_number=sequence_number,
+            identifier=0xcafe,
+            sequence_number=0xbabe,
             payload=payload
         )
         self.icmp_socket.sendto(new_icmp_packet, self.other_endpoint)

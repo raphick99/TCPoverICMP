@@ -18,6 +18,7 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
         self.destination_port = destination_port
         self.incoming_tcp_connections = asyncio.Queue(maxsize=1000)
         self.tcp_server = server.Server(host, port, self.incoming_tcp_connections)
+        self.coroutines_to_run.append(self.tcp_server.serve_forever())
         self.coroutines_to_run.append(self.wait_for_new_connection())
 
     @property
@@ -32,11 +33,10 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
         log.debug('invalid start command. ignoring')
 
     async def handle_end_request(self, tunnel_packet):
-        self.client_manager.remove_client(tunnel_packet.identifier)
+        self.client_manager.remove_client(tunnel_packet.client_id)
 
     async def handle_data_request(self, tunnel_packet):
-        # await self.client_manager.write_to_client(tunnel_packet.payload, new_icmp_packet.identifier)
-        pass
+        await self.client_manager.write_to_client(tunnel_packet.payload, tunnel_packet.client_id)
 
     async def handle_ack_request(self, tunnel_packet):
         pass
@@ -46,11 +46,13 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
             client_id, reader, writer = await self.incoming_tcp_connections.get()
 
             new_tunnel_packet = Tunnel(
-                ip=self.destination_host,
-                port=self.destination_port,
+                client_id=client_id,
+                sequence_number=0,
                 action=Tunnel.Action.start,
                 direction=Tunnel.Direction.to_proxy,
+                ip=self.destination_host,
+                port=self.destination_port,
                 payload=b'',
             )
-            self.send_icmp_packet(icmp_packet.ICMPType.EchoRequest, client_id, 0, new_tunnel_packet.SerializeToString())
+            self.send_icmp_packet(icmp_packet.ICMPType.EchoRequest, new_tunnel_packet.SerializeToString())
             self.client_manager.add_client(client_id, reader, writer)
