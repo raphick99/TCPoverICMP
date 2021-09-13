@@ -19,7 +19,7 @@ class ClientSession:
         self.reader = reader
         self.writer = writer
         self.sequence_number = itertools.count(1)
-        self.last_written = 1
+        self.last_written = 0
         self.packets = {}
 
     async def stop(self):
@@ -33,7 +33,7 @@ class ClientSession:
         except ConnectionResetError:
             raise ClientClosedConnectionError()
 
-        if data.decode() == '':
+        if not data:
             raise ClientClosedConnectionError()
 
         return data
@@ -41,6 +41,10 @@ class ClientSession:
     async def write(self, sequence_number: int, data: bytes):
         if self.writer.is_closing():
             raise ClientClosedConnectionError()
+
+        if sequence_number in self.packets.keys():
+            log.debug(f'ignoring repeated packet: (seq_num={sequence_number})')
+            return
 
         self.packets[sequence_number] = data
         while (self.last_written + 1) in self.packets.keys():

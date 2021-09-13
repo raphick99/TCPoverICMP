@@ -31,6 +31,7 @@ class TunnelEndpoint:
             self.incoming_from_tcp_channel
         )
 
+        self.packets_requiring_ack = {}
         self.coroutines_to_run = []
 
     @property
@@ -68,7 +69,7 @@ class TunnelEndpoint:
         while True:
             new_icmp_packet = await self.incoming_from_icmp_channel.get()
             if new_icmp_packet.identifier != 0xcafe or new_icmp_packet.sequence_number != 0xbabe:
-                log.debug(f'wrong magic (identifier={new_icmp_packet.identifer})'
+                log.debug(f'wrong magic (identifier={new_icmp_packet.identifier})'
                           f'(seq_num={new_icmp_packet.sequence_number}), ignoring')
                 continue
 
@@ -103,7 +104,7 @@ class TunnelEndpoint:
                 direction=self.direction,
                 payload=data,
             )
-            self.send_icmp_packet(icmp_packet.ICMPType.EchoRequest, new_tunnel_packet.SerializeToString())
+            asyncio.create_task(self.send_icmp_packet_and_wait_for_ack(new_tunnel_packet))
 
     async def wait_for_stale_connection(self):
         while True:
@@ -115,7 +116,7 @@ class TunnelEndpoint:
                 direction=self.direction,
             )
 
-            self.send_icmp_packet(icmp_packet.ICMPType.EchoRequest, new_tunnel_packet.SerializeToString())
+            await self.send_icmp_packet_and_wait_for_ack(new_tunnel_packet)
             await self.client_manager.remove_client(client_id)
 
     def send_ack(self, tunnel_packet: Tunnel):
@@ -129,6 +130,24 @@ class TunnelEndpoint:
             icmp_packet.ICMPType.EchoReply,
             new_tunnel_packet.SerializeToString(),
         )
+
+    async def send_icmp_packet_and_wait_for_ack(self, tunnel_packet: Tunnel):
+        self.packets_requiring_ack[(tunnel_packet.client_id, tunnel_packet.sequence_number)] = asyncio.Event()
+
+        for _ in range(3):
+            self.send_icmp_packet(
+                icmp_packet.ICMPType.EchoRequest,
+                tunnel_packet.SerializeToString(),
+            )
+            try:
+                await asyncio.wait_for(
+                    self.packets_requiring_ack[(tunnel_packet.client_id, tunnel_packet.sequence_number)].wait(),
+                    0.3
+                )
+                return
+            except asyncio.TimeoutError:
+                log.debug(f'failed to send, resending:\n{tunnel_packet}')
+        log.info(f'message failed to send:\n{tunnel_packet}')
 
     def send_icmp_packet(
             self,

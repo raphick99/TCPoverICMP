@@ -44,4 +44,4 @@ class Proxy(tunnel_endpoint.TunnelEndpoint):
         self.send_ack(tunnel_packet)
 
     async def handle_ack_request(self, tunnel_packet: Tunnel):
-        pass
+        self.packets_requiring_ack[(tunnel_packet.client_id, tunnel_packet.sequence_number)].set()

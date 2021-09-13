@@ -46,7 +46,7 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
         self.send_ack(tunnel_packet)
 
     async def handle_ack_request(self, tunnel_packet: Tunnel):
-        pass
+        self.packets_requiring_ack[(tunnel_packet.client_id, tunnel_packet.sequence_number)].set()
 
     async def wait_for_new_connection(self):
         while True:
@@ -59,5 +59,5 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
                 ip=self.destination_host,
                 port=self.destination_port,
             )
-            self.send_icmp_packet(icmp_packet.ICMPType.EchoRequest, new_tunnel_packet.SerializeToString())
+            await self.send_icmp_packet_and_wait_for_ack(new_tunnel_packet)
             self.client_manager.add_client(client_id, reader, writer)
