@@ -19,6 +19,8 @@ class ClientSession:
         self.reader = reader
         self.writer = writer
         self.sequence_number = itertools.count(1)
+        self.last_written = 1
+        self.packets = {}
 
     async def stop(self):
         log.debug(f'(client_id={self.client_id}): Shutting down..')
@@ -36,9 +38,15 @@ class ClientSession:
 
         return data
 
-    async def write(self, data: bytes):
+    async def write(self, sequence_number: int, data: bytes):
         if self.writer.is_closing():
             raise ClientClosedConnectionError()
 
-        self.writer.write(data)
-        await self.writer.drain()
+        self.packets[sequence_number] = data
+        while (self.last_written + 1) in self.packets.keys():
+            self.last_written += 1
+
+            self.writer.write(self.packets[self.last_written])
+            await self.writer.drain()
+
+            self.packets.pop(self.last_written)

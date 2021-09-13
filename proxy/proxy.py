@@ -36,7 +36,11 @@ class Proxy(tunnel_endpoint.TunnelEndpoint):
         self.send_ack(tunnel_packet)
 
     async def handle_data_request(self, tunnel_packet: Tunnel):
-        await self.client_manager.write_to_client(tunnel_packet.payload, tunnel_packet.client_id)
+        await self.client_manager.write_to_client(
+            tunnel_packet.client_id,
+            tunnel_packet.sequence_number,
+            tunnel_packet.payload
+        )
         self.send_ack(tunnel_packet)
 
     async def handle_ack_request(self, tunnel_packet: Tunnel):
