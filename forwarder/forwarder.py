@@ -52,7 +52,6 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
                 direction=Tunnel.Direction.to_proxy,
                 ip=self.destination_host,
                 port=self.destination_port,
-                payload=b'',
             )
             self.send_icmp_packet(icmp_packet.ICMPType.EchoRequest, new_tunnel_packet.SerializeToString())
             self.client_manager.add_client(client_id, reader, writer)

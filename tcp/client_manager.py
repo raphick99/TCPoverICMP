@@ -2,7 +2,7 @@ import asyncio
 import logging
 
 from tcp import client_session
-from exceptions import ClientClosedConnectionError, WriteAttemptedToNonExistentClient
+import exceptions
 
 
 log = logging.getLogger(__name__)
@@ -25,19 +25,18 @@ class ClientManager:
         new_client_session = client_session.ClientSession(client_id, reader, writer, self.incoming_tcp_packet)
         new_task = asyncio.create_task(new_client_session.run())
         self.clients[client_id] = new_client_session, new_task
-        log.debug(f'new client running: client_id={client_id}')
-
-    def remove_client(self, client_id: int):
-        log.debug(f'new client running: client_id={client_id}')
+        log.debug(f'adding client: (client_id={client_id})')
 
         if self.client_exists(client_id):
+            log.debug(f'removing client: (client_id={client_id})')
             # todo (RI): make nicer, maybe collections.namedtuple
             self.clients[client_id][0].stop()
             self.clients[client_id][1].cancel()
 
     async def write_to_client(self, data: bytes, client_id: int):
         if not self.client_exists(client_id):
-            raise WriteAttemptedToNonExistentClient()
+            raise exceptions.WriteAttemptedToNonExistentClient()
+
         try:
             await self.clients[client_id][0].write(data)
         except ClientClosedConnectionError:

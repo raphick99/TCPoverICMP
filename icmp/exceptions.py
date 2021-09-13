@@ -4,3 +4,7 @@ class WrongChecksumOnICMPPacket(Exception):
 
 class InvalidICMPCode(Exception):
     pass
+
+
+class RecvReturnedEmptyString(Exception):
+    pass

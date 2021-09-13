@@ -22,14 +22,12 @@ class ICMPSocket(object):
 
         self._icmp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
         self._icmp_socket.setblocking(False)
-        self._icmp_socket.sendto(b'\x00', ('', 0))  # need to send one packet, because didnt bind.
+        self._icmp_socket.sendto(b'\x00\x00', ('', 0))  # need to send one packet, because didnt bind.
 
     async def recv(self, buffersize: int = 4096):
         data = await asyncio.get_event_loop().sock_recv(self._icmp_socket, buffersize)
         if data == '':
-            pass
-            # TODO This shouldnt happen. What if it does?
-        # log.debug(f'received packet over ICMP: {data.hex()}')
+            raise exceptions.RecvReturnedEmptyString()
         return icmp_packet.ICMPPacket.deserialize(data[self.IP_HEADER_LENGTH:])
 
     async def wait_for_incoming_packet(self):

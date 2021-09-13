@@ -76,7 +76,7 @@ class TunnelEndpoint:
             tunnel_packet.ParseFromString(new_icmp_packet.payload)
             if tunnel_packet.action != Tunnel.Action.ack:
                 self.send_ack(tunnel_packet)
-            log.debug(f'received {tunnel_packet}')
+            log.debug(f'received:\n{tunnel_packet}')
 
             if tunnel_packet.direction == self.direction:
                 log.debug('ignoring packet headed in the wrong direction')
@@ -100,8 +100,6 @@ class TunnelEndpoint:
                 sequence_number=sequence_number,
                 action=Tunnel.Action.data,
                 direction=self.direction,
-                ip='',
-                port=0,
                 payload=data,
             )
             self.send_icmp_packet(icmp_packet.ICMPType.EchoRequest, new_tunnel_packet.SerializeToString())
@@ -114,23 +112,17 @@ class TunnelEndpoint:
                 client_id=client_id,
                 action=Tunnel.Action.end,
                 direction=self.direction,
-                ip='',
-                port=0,
-                payload=b'',
             )
 
             self.send_icmp_packet(icmp_packet.ICMPType.EchoRequest, new_tunnel_packet.SerializeToString())
             self.client_manager.remove_client(client_id)
 
-    def send_ack(self, tunnel_packet):
+    def send_ack(self, tunnel_packet: Tunnel):
         new_tunnel_packet = Tunnel(
             client_id=tunnel_packet.client_id,
             sequence_number=tunnel_packet.sequence_number,
             action=Tunnel.Action.ack,
             direction=self.direction,
-            ip='',
-            port=0,
-            payload=b'',
         )
         self.send_icmp_packet(
             icmp_packet.ICMPType.EchoReply,
