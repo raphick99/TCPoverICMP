@@ -87,7 +87,10 @@ class TunnelEndpoint:
                 Tunnel.Action.ack: self.handle_ack_request,
 
             }
-            await actions[tunnel_packet.action](tunnel_packet)
+            try:
+                await actions[tunnel_packet.action](tunnel_packet)
+            except Exception as e:
+                print(e)
 
     async def handle_incoming_from_tcp_channel(self):
         while True:
