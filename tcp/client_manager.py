@@ -45,12 +45,12 @@ class ClientManager:
         await self.clients[client_id].session.stop()
         self.clients.pop(client_id)
 
-    async def write_to_client(self, data: bytes, client_id: int):
+    async def write_to_client(self, client_id: int, sequence_number: int, data: bytes):
         if not self.client_exists(client_id):
             raise exceptions.WriteAttemptedToNonExistentClient()
 
         try:
-            await self.clients[client_id].session.write(data)
+            await self.clients[client_id].session.write(sequence_number, data)
         except exceptions.ClientClosedConnectionError:
             await self.stale_connections.put(client_id)
 

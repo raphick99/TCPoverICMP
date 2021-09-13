@@ -21,7 +21,7 @@ class Proxy(tunnel_endpoint.TunnelEndpoint):
         try:
             reader, writer = await asyncio.open_connection(tunnel_packet.ip, tunnel_packet.port)
         except ConnectionRefusedError:
-            log.debug(f'{tunnel_packet.ip}:{tunnel_packet.port} refused connection.')
+            log.debug(f'{tunnel_packet.ip}:{tunnel_packet.port} refused connection. tunnel not started.')
             return
 
         self.client_manager.add_client(
@@ -36,8 +36,12 @@ class Proxy(tunnel_endpoint.TunnelEndpoint):
         self.send_ack(tunnel_packet)
 
     async def handle_data_request(self, tunnel_packet: Tunnel):
-        await self.client_manager.write_to_client(tunnel_packet.payload, tunnel_packet.client_id)
+        await self.client_manager.write_to_client(
+            tunnel_packet.client_id,
+            tunnel_packet.sequence_number,
+            tunnel_packet.payload
+        )
         self.send_ack(tunnel_packet)
 
     async def handle_ack_request(self, tunnel_packet: Tunnel):
-        pass
+        self.packets_requiring_ack[(tunnel_packet.client_id, tunnel_packet.sequence_number)].set()
