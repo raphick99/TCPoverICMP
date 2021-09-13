@@ -113,7 +113,7 @@ class TunnelEndpoint:
             )
 
             self.send_icmp_packet(icmp_packet.ICMPType.EchoRequest, new_tunnel_packet.SerializeToString())
-            self.client_manager.remove_client(client_id)
+            await self.client_manager.remove_client(client_id)
 
     def send_ack(self, tunnel_packet: Tunnel):
         new_tunnel_packet = Tunnel(
