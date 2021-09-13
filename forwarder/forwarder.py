@@ -54,7 +54,6 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
 
             new_tunnel_packet = Tunnel(
                 client_id=client_id,
-                sequence_number=0,
                 action=Tunnel.Action.start,
                 direction=self.direction,
                 ip=self.destination_host,
