@@ -24,12 +24,14 @@ class Proxy(tunnel_endpoint.TunnelEndpoint):
             reader=reader,
             writer=writer,
         )
+        self.send_ack(tunnel_packet)
 
     async def handle_end_request(self, tunnel_packet: Tunnel):
         self.client_manager.remove_client(tunnel_packet.client_id)
 
     async def handle_data_request(self, tunnel_packet: Tunnel):
         await self.client_manager.write_to_client(tunnel_packet.payload, tunnel_packet.client_id)
+        self.send_ack(tunnel_packet)
 
     async def handle_ack_request(self, tunnel_packet: Tunnel):
         pass

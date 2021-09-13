@@ -74,8 +74,6 @@ class TunnelEndpoint:
 
             tunnel_packet = Tunnel()
             tunnel_packet.ParseFromString(new_icmp_packet.payload)
-            if tunnel_packet.action != Tunnel.Action.ack:
-                self.send_ack(tunnel_packet)
             log.debug(f'received:\n{tunnel_packet}')
 
             if tunnel_packet.direction == self.direction:

@@ -31,12 +31,14 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
 
     async def handle_start_request(self, tunnel_packet: Tunnel):
         log.debug('invalid start command. ignoring')
+        self.send_ack(tunnel_packet)
 
     async def handle_end_request(self, tunnel_packet: Tunnel):
         self.client_manager.remove_client(tunnel_packet.client_id)
 
     async def handle_data_request(self, tunnel_packet: Tunnel):
         await self.client_manager.write_to_client(tunnel_packet.payload, tunnel_packet.client_id)
+        self.send_ack(tunnel_packet)
 
     async def handle_ack_request(self, tunnel_packet: Tunnel):
         pass
@@ -49,7 +51,7 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
                 client_id=client_id,
                 sequence_number=0,
                 action=Tunnel.Action.start,
-                direction=Tunnel.Direction.to_proxy,
+                direction=self.direction,
                 ip=self.destination_host,
                 port=self.destination_port,
             )
