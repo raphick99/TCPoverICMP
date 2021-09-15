@@ -136,12 +136,14 @@ class TunnelEndpoint:
             try:
                 await asyncio.wait_for(
                     self.packets_requiring_ack[(tunnel_packet.client_id, tunnel_packet.sequence_number)].wait(),
-                    0.3
+                    0.7
                 )
-                return
+                self.packets_requiring_ack.pop((tunnel_packet.client_id, tunnel_packet.sequence_number))  # if i reached here, means that ack was received. can remove event.
+                return True
             except asyncio.TimeoutError:
                 log.debug(f'failed to send, resending:\n{tunnel_packet}')
-        log.info(f'message failed to send:\n{tunnel_packet}')
+        log.info(f'message failed to send:\n{tunnel_packet}\nremoving client.')
+        await self.stale_tcp_connections.put(tunnel_packet.client_id)  # remove client, cannot send his messages.
 
     def send_icmp_packet(
             self,

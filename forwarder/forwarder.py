@@ -41,5 +41,8 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
                 ip=self.destination_host,
                 port=self.destination_port,
             )
-            await self.send_icmp_packet_and_wait_for_ack(new_tunnel_packet)
-            self.client_manager.add_client(client_id, reader, writer)
+            if await self.send_icmp_packet_and_wait_for_ack(new_tunnel_packet):  # only add client if other endpoint acked.
+                self.client_manager.add_client(client_id, reader, writer)
+            else:
+                writer.close()
+                await writer.wait_closed()
