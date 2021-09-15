@@ -3,7 +3,6 @@ import logging
 
 from core import tunnel_endpoint
 from tcp import server
-from icmp import icmp_packet
 from proto import Tunnel
 
 
@@ -45,6 +44,9 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
         self.packets_requiring_ack[(tunnel_packet.client_id, tunnel_packet.sequence_number)].set()
 
     async def wait_for_new_connection(self):
+        """
+        receive new connections from the server through a queue.
+        """
         while True:
             client_id, reader, writer = await self.incoming_tcp_connections.get()
 

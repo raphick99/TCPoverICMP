@@ -19,11 +19,7 @@ class TunnelEndpoint:
         self.incoming_from_tcp_channel = asyncio.Queue()
 
         self.icmp_socket = icmp_socket.ICMPSocket(self.incoming_from_icmp_channel)
-
-        self.client_manager = client_manager.ClientManager(
-            self.stale_tcp_connections,
-            self.incoming_from_tcp_channel
-        )
+        self.client_manager = client_manager.ClientManager(self.stale_tcp_connections, self.incoming_from_tcp_channel)
 
         self.packets_requiring_ack = {}
         self.coroutines_to_run = []
@@ -107,7 +103,7 @@ class TunnelEndpoint:
             )
 
             await self.send_icmp_packet_and_wait_for_ack(new_tunnel_packet)
-            await self.client_manager.remove_client(client_id)
+            await self.client_manager.remove_client(client_id)  # remove client, doesnt matter if the packet was acked.
 
     def send_ack(self, tunnel_packet: Tunnel):
         new_tunnel_packet = Tunnel(
@@ -122,6 +118,11 @@ class TunnelEndpoint:
         )
 
     async def send_icmp_packet_and_wait_for_ack(self, tunnel_packet: Tunnel):
+        """
+        coroutine that tries to send a icmp packet and assert that an ack was received. if an ack wasnt received, send again, up to 3 times.
+        :param tunnel_packet: the packet to send on the icmp socket.
+        :return: boolean representing wether the packet was successfully acked.
+        """
         self.packets_requiring_ack[(tunnel_packet.client_id, tunnel_packet.sequence_number)] = asyncio.Event()
 
         for _ in range(3):
