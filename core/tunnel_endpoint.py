@@ -14,12 +14,10 @@ class TunnelEndpoint:
         self.other_endpoint = other_endpoint
         log.info(f'other tunnel endpoint: {self.other_endpoint}')
 
+        self.stale_tcp_connections = asyncio.Queue()
+        self.incoming_from_icmp_channel = asyncio.Queue()
+        self.incoming_from_tcp_channel = asyncio.Queue()
 
-class TunnelEndpoint:
-    def __init__(self):
-        self.stale_tcp_connections = asyncio.Queue(maxsize=1000)
-        self.incoming_from_icmp_channel = asyncio.Queue(maxsize=1000)
-        self.incoming_from_tcp_channel = asyncio.Queue(maxsize=1000)
         self.icmp_socket = icmp_socket.ICMPSocket(self.incoming_from_icmp_channel)
 
         self.client_manager = client_manager.ClientManager(
