@@ -9,14 +9,10 @@ from proto import Tunnel
 log = logging.getLogger(__name__)
 
 
-def consume_queue(queue_to_consume):
-    def wrap_function(f):
-        async def wrapper(*_, **__):
-            while True:
-                args = await queue_to_consume.get()
-                await f(*args)
-        return wrapper
-    return wrap_function
+class TunnelEndpoint:
+    def __init__(self, other_endpoint):
+        self.other_endpoint = other_endpoint
+        log.info(f'other tunnel endpoint: {self.other_endpoint}')
 
 
 class TunnelEndpoint:
@@ -33,10 +29,6 @@ class TunnelEndpoint:
 
         self.packets_requiring_ack = {}
         self.coroutines_to_run = []
-
-    @property
-    def other_endpoint(self):
-        raise NotImplementedError()
 
     @property
     def direction(self):

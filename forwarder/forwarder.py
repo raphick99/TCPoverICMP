@@ -11,8 +11,8 @@ log = logging.getLogger(__name__)
 
 
 class Forwarder(tunnel_endpoint.TunnelEndpoint):
-    def __init__(self, host, port, destination_host, destination_port):
-        super(Forwarder, self).__init__()
+    def __init__(self, other_endpoint, host, port, destination_host, destination_port):
+        super(Forwarder, self).__init__(other_endpoint)
         log.info(f'forwarding to {destination_host}:{destination_port}')
         self.destination_host = destination_host
         self.destination_port = destination_port
@@ -20,10 +20,6 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
         self.tcp_server = server.Server(host, port, self.incoming_tcp_connections)
         self.coroutines_to_run.append(self.tcp_server.serve_forever())
         self.coroutines_to_run.append(self.wait_for_new_connection())
-
-    @property
-    def other_endpoint(self):
-        return '192.168.23.153'
 
     @property
     def direction(self):

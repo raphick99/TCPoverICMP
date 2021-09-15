@@ -10,10 +10,6 @@ log = logging.getLogger(__name__)
 
 class Proxy(tunnel_endpoint.TunnelEndpoint):
     @property
-    def other_endpoint(self):
-        return '192.168.23.152'
-
-    @property
     def direction(self):
         return Tunnel.Direction.to_forwarder
 
