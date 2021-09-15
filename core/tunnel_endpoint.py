@@ -10,6 +10,10 @@ log = logging.getLogger(__name__)
 
 
 class TunnelEndpoint:
+    MAGIC_IDENTIFIER = 0xcafe
+    MAGIC_SEQUENCE_NUMBER = 0xbabe
+    ACK_WAITING_TIME = 0.7
+
     def __init__(self, other_endpoint):
         self.other_endpoint = other_endpoint
         log.info(f'other tunnel endpoint: {self.other_endpoint}')
@@ -60,7 +64,7 @@ class TunnelEndpoint:
     async def handle_incoming_from_icmp_channel(self):
         while True:
             new_icmp_packet = await self.incoming_from_icmp_channel.get()
-            if new_icmp_packet.identifier != 0xcafe or new_icmp_packet.sequence_number != 0xbabe:
+            if new_icmp_packet.identifier != self.MAGIC_IDENTIFIER or new_icmp_packet.sequence_number != self.MAGIC_SEQUENCE_NUMBER:
                 log.debug(f'wrong magic (identifier={new_icmp_packet.identifier})'
                           f'(seq_num={new_icmp_packet.sequence_number}), ignoring')
                 continue
@@ -99,11 +103,7 @@ class TunnelEndpoint:
         while True:
             client_id = await self.stale_tcp_connections.get()
 
-            new_tunnel_packet = Tunnel(
-                client_id=client_id,
-                action=Tunnel.Action.end,
-                direction=self.direction,
-            )
+            new_tunnel_packet = Tunnel(client_id=client_id, action=Tunnel.Action.end, direction=self.direction)
 
             await self.send_icmp_packet_and_wait_for_ack(new_tunnel_packet)
             await self.client_manager.remove_client(client_id)  # remove client, doesnt matter if the packet was acked.
@@ -136,7 +136,7 @@ class TunnelEndpoint:
             try:
                 await asyncio.wait_for(
                     self.packets_requiring_ack[(tunnel_packet.client_id, tunnel_packet.sequence_number)].wait(),
-                    0.7
+                    self.ACK_WAITING_TIME
                 )
                 self.packets_requiring_ack.pop((tunnel_packet.client_id, tunnel_packet.sequence_number))  # if i reached here, means that ack was received. can remove event.
                 return True
@@ -152,8 +152,8 @@ class TunnelEndpoint:
     ):
         new_icmp_packet = icmp_packet.ICMPPacket(
             type=type,
-            identifier=0xcafe,
-            sequence_number=0xbabe,
+            identifier=self.MAGIC_IDENTIFIER,
+            sequence_number=self.MAGIC_SEQUENCE_NUMBER,
             payload=payload
         )
         self.icmp_socket.sendto(new_icmp_packet, self.other_endpoint)

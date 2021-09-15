@@ -16,17 +16,21 @@ log.setLevel(logging.DEBUG)
 
 class ICMPSocket(object):
     IP_HEADER_LENGTH = 20
+    MINIMAL_PACKET = b'\x00\x00'
+    DEFAULT_DESTINATION_PORT = 0
+    DEFAULT_DESTINATION = ('', DEFAULT_DESTINATION_PORT)
+    DEFAULT_BUFFERSIZE = 4096
 
     def __init__(self, incoming_queue: asyncio.Queue):
         self.incoming_queue = incoming_queue
 
         self._icmp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
         self._icmp_socket.setblocking(False)
-        self._icmp_socket.sendto(b'\x00\x00', ('', 0))  # need to send one packet, because didnt bind.
+        self._icmp_socket.sendto(self.MINIMAL_PACKET, self.DEFAULT_DESTINATION)  # need to send one packet, because didnt bind. otherwise exception is raised when using on first packet.
 
-    async def recv(self, buffersize: int = 4096):
+    async def recv(self, buffersize: int = DEFAULT_BUFFERSIZE):
         data = await asyncio.get_event_loop().sock_recv(self._icmp_socket, buffersize)
-        if data == '':
+        if not data:
             raise exceptions.RecvReturnedEmptyString()
         return icmp_packet.ICMPPacket.deserialize(data[self.IP_HEADER_LENGTH:])
 
@@ -38,4 +42,4 @@ class ICMPSocket(object):
 
     def sendto(self, packet: icmp_packet.ICMPPacket, destination: str):
         log.debug(f'sending {packet.payload} to {destination}')
-        self._icmp_socket.sendto(packet.serialize(), (destination, 0))
+        self._icmp_socket.sendto(packet.serialize(), (destination, self.DEFAULT_DESTINATION_PORT))

@@ -9,6 +9,9 @@ log = logging.getLogger(__name__)
 
 
 class ClientSession:
+    INITIAL_SEQUENCE_NUMBER = 1
+    RECV_BLOCK_SIZE = 1024
+
     def __init__(
             self,
             client_id: int,
@@ -18,8 +21,8 @@ class ClientSession:
         self.client_id = client_id
         self.reader = reader
         self.writer = writer
-        self.sequence_number = itertools.count(1)
-        self.last_written = 0
+        self.sequence_number = itertools.count(self.INITIAL_SEQUENCE_NUMBER)
+        self.last_written = self.INITIAL_SEQUENCE_NUMBER - 1
         self.packets = {}
 
     async def stop(self):
@@ -29,7 +32,7 @@ class ClientSession:
 
     async def read(self):
         try:
-            data = await self.reader.read(1024)
+            data = await self.reader.read(self.RECV_BLOCK_SIZE)
         except ConnectionResetError:
             raise ClientClosedConnectionError()
 
