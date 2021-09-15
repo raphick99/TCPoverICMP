@@ -36,10 +36,19 @@ class TunnelEndpoint:
         raise NotImplementedError()
 
     async def handle_end_request(self, tunnel_packet: Tunnel):
+        """
+        generic handle for end request. remove client and send ack
+        :param tunnel_packet: packet containing the client_id to remove.
+        :return:
+        """
         await self.client_manager.remove_client(tunnel_packet.client_id)
         self.send_ack(tunnel_packet)
 
     async def handle_data_request(self, tunnel_packet: Tunnel):
+        """
+        generic handle for data request. forwards to the proper client and sends an ack.
+        :param tunnel_packet: the packet to send.
+        """
         await self.client_manager.write_to_client(
             tunnel_packet.client_id,
             tunnel_packet.sequence_number,
@@ -48,9 +57,16 @@ class TunnelEndpoint:
         self.send_ack(tunnel_packet)
 
     async def handle_ack_request(self, tunnel_packet: Tunnel):
+        """
+        generic handle for an ack request.
+        :param tunnel_packet: the packet to ack.
+        """
         self.packets_requiring_ack[(tunnel_packet.client_id, tunnel_packet.sequence_number)].set()
 
     async def run(self):
+        """
+        run the whole tunnel endpoint, which pretty much means run all the basic tasks and gather them.
+        """
         constant_coroutines = [
             self.handle_incoming_from_tcp_channel(),
             self.handle_incoming_from_icmp_channel(),
@@ -62,6 +78,9 @@ class TunnelEndpoint:
         await asyncio.gather(*running_tasks)
 
     async def handle_incoming_from_icmp_channel(self):
+        """
+        listen for new tunnel packets from the icmp channel. parse and execute them.
+        """
         while True:
             new_icmp_packet = await self.incoming_from_icmp_channel.get()
             if new_icmp_packet.identifier != self.MAGIC_IDENTIFIER or new_icmp_packet.sequence_number != self.MAGIC_SEQUENCE_NUMBER:
@@ -87,6 +106,9 @@ class TunnelEndpoint:
             await actions[tunnel_packet.action](tunnel_packet)
 
     async def handle_incoming_from_tcp_channel(self):
+        """
+        await on the incoming_from_tcp_channel queue for new data packets to send on the icmp channel.
+        """
         while True:
             data, client_id, sequence_number = await self.incoming_from_tcp_channel.get()
 
@@ -100,6 +122,9 @@ class TunnelEndpoint:
             asyncio.create_task(self.send_icmp_packet_and_wait_for_ack(new_tunnel_packet))
 
     async def wait_for_stale_connection(self):
+        """
+        await on the stale_tcp_connections queue for a stale client
+        """
         while True:
             client_id = await self.stale_tcp_connections.get()
 
@@ -109,6 +134,10 @@ class TunnelEndpoint:
             await self.client_manager.remove_client(client_id)  # remove client, doesnt matter if the packet was acked.
 
     def send_ack(self, tunnel_packet: Tunnel):
+        """
+        send an ack for a given packet using echoReply
+        :param tunnel_packet: the packet to ack
+        """
         new_tunnel_packet = Tunnel(
             client_id=tunnel_packet.client_id,
             sequence_number=tunnel_packet.sequence_number,
@@ -150,6 +179,11 @@ class TunnelEndpoint:
             type: icmp_packet.ICMPType,
             payload: bytes
     ):
+        """
+        build and send an icmp packet on the icmp socket.
+        :param type: wether to send an echoRequest or an echoReply
+        :param payload: the payload to push into the icmp
+        """
         new_icmp_packet = icmp_packet.ICMPPacket(
             type=type,
             identifier=self.MAGIC_IDENTIFIER,

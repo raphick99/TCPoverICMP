@@ -25,11 +25,14 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
         return Tunnel.Direction.to_proxy
 
     async def handle_start_request(self, tunnel_packet: Tunnel):
+        """
+        not the right endpoint for this action. therefore ignore this packet.
+        """
         log.debug(f'invalid start command. ignoring...\n{tunnel_packet}')
 
     async def wait_for_new_connection(self):
         """
-        receive new connections from the server through a queue.
+        receive new connections from the server through incoming_tcp_connections queue.
         """
         while True:
             client_id, reader, writer = await self.incoming_tcp_connections.get()
@@ -43,6 +46,6 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
             )
             if await self.send_icmp_packet_and_wait_for_ack(new_tunnel_packet):  # only add client if other endpoint acked.
                 self.client_manager.add_client(client_id, reader, writer)
-            else:
+            else:  # if the other endpoint didnt receive the start request, close the local client.
                 writer.close()
                 await writer.wait_closed()

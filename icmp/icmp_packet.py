@@ -23,6 +23,11 @@ class ICMPPacket:
 
     @classmethod
     def deserialize(cls, packet: bytes):
+        """
+        classmethod for building ICMPPackets based on a stream of bytes
+        :param packet: the packet that needs to be deserialized into ICMPPacket
+        :return: the built ICMPPacket
+        """
         raw_type, code, checksum, identifier, sequence_number = cls.ICMP_STRUCT.unpack(packet[:cls.ICMP_STRUCT.size])
 
         if code != cls.CODE:
@@ -38,6 +43,10 @@ class ICMPPacket:
         return cls(ICMPType(raw_type), identifier, sequence_number, packet[cls.ICMP_STRUCT.size:])
 
     def serialize(self):
+        """
+        serialize an instance of a ICMPPacket into a stream of bytes
+        :return: the current ICMPPacket, serialized
+        """
         packet_without_checksum = self.ICMP_STRUCT.pack(
             self.type.value,
             self.CODE,

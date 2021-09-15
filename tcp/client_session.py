@@ -26,11 +26,18 @@ class ClientSession:
         self.packets = {}
 
     async def stop(self):
+        """
+        close the underlying socket, thus stopping the client session
+        """
         log.debug(f'(client_id={self.client_id}): Shutting down..')
         self.writer.close()
         await self.writer.wait_closed()
 
     async def read(self):
+        """
+        read RECV_BLOCK_SIZE from the reader
+        :return: the data that was just read
+        """
         try:
             data = await self.reader.read(self.RECV_BLOCK_SIZE)
         except ConnectionResetError:
@@ -42,6 +49,11 @@ class ClientSession:
         return data
 
     async def write(self, sequence_number: int, data: bytes):
+        """
+        write a packet to the current client, sequentially
+        :param sequence_number: the sequence number of the packet. this enables packets to be written in sequence, without duplicates
+        :param data: the data to be written
+        """
         if self.writer.is_closing():
             raise ClientClosedConnectionError()
 
