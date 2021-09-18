@@ -12,9 +12,9 @@ log = logging.getLogger(__name__)
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('proxy_ip', help='IP address of the proxy server')
-    parser.add_argument('listening_port', type=int, help='Port on which the forwarder will listen on')
+    parser.add_argument('listening_port', type=int, help='Port on which the forwarder will listen')
     parser.add_argument('destination_ip', help='IP address to forward to')
-    parser.add_argument('destination_port', help='port to forward to')
+    parser.add_argument('destination_port', type=int, help='port to forward to')
     return parser.parse_args()
 
 
