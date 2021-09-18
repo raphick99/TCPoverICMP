@@ -10,10 +10,6 @@ log = logging.getLogger(__name__)
 
 class Proxy(tunnel_endpoint.TunnelEndpoint):
     @property
-    def other_endpoint(self):
-        return '192.168.23.152'
-
-    @property
     def direction(self):
         return Tunnel.Direction.to_forwarder
 
@@ -30,18 +26,3 @@ class Proxy(tunnel_endpoint.TunnelEndpoint):
             writer=writer,
         )
         self.send_ack(tunnel_packet)
-
-    async def handle_end_request(self, tunnel_packet: Tunnel):
-        await self.client_manager.remove_client(tunnel_packet.client_id)
-        self.send_ack(tunnel_packet)
-
-    async def handle_data_request(self, tunnel_packet: Tunnel):
-        await self.client_manager.write_to_client(
-            tunnel_packet.client_id,
-            tunnel_packet.sequence_number,
-            tunnel_packet.payload
-        )
-        self.send_ack(tunnel_packet)
-
-    async def handle_ack_request(self, tunnel_packet: Tunnel):
-        self.packets_requiring_ack[(tunnel_packet.client_id, tunnel_packet.sequence_number)].set()

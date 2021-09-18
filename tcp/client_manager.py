@@ -23,9 +23,15 @@ class ClientManager:
         self.incoming_tcp_packets = incoming_tcp_packets
 
     def client_exists(self, client_id: int):
+        """
+        check if client exists
+        """
         return client_id in self.clients.keys()
 
     def add_client(self, client_id: int, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+        """
+        add a client to be managed. create a task that constantly reads from the client.
+        """
         if self.client_exists(client_id):
             raise exceptions.ClientAlreadyExistsError()
 
@@ -35,7 +41,11 @@ class ClientManager:
         log.debug(f'adding client: (client_id={client_id})')
 
     async def remove_client(self, client_id: int):
-        # Note: Dont call directly from client_manager, instead put client_id in stale_connections.
+        """
+        remove a managed client. cancel the task and stop the client session.
+        Dont call directly from client_manager, instead put client_id in stale_connections.
+        :param client_id: the client_id to remove
+        """
         if not self.client_exists(client_id):
             raise exceptions.RemovingClientThatDoesntExistError()
 
@@ -46,6 +56,12 @@ class ClientManager:
         self.clients.pop(client_id)
 
     async def write_to_client(self, client_id: int, sequence_number: int, data: bytes):
+        """
+        function for writing to a managed client.
+        :param client_id: the client_id of the client to write to.
+        :param sequence_number: the sequence number of the write. used for validation and ordering of packets.
+        :param data: the data to write.
+        """
         if not self.client_exists(client_id):
             raise exceptions.WriteAttemptedToNonExistentClient()
 
@@ -55,6 +71,10 @@ class ClientManager:
             await self.stale_connections.put(client_id)
 
     async def read_from_client(self, client_id: int):
+        """
+        constantly read from a client, and put in incoming_tcp_packets queue.
+        :param client_id: the client to read from.
+        """
         if not self.client_exists(client_id):
             raise exceptions.ReadAttemptedFromNonExistentClient()
 
