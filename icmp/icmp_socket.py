@@ -10,10 +10,6 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 
-# I only need an incoming packet queue, because since the server manages the tcp-incoming messages, it can just call
-#  the appropriate send function. Therefore, I can have a while-true on recv, and on write, just expose an API.
-
-
 class ICMPSocket(object):
     IP_HEADER_LENGTH = 20
     MINIMAL_PACKET = b'\x00\x00'
