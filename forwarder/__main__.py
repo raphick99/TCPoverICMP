@@ -23,5 +23,9 @@ async def main():
     await forwarder.Forwarder(args.proxy_ip, args.listening_port, args.destination_ip, args.destination_port).run()
 
 
-if __name__ == '__main__':
+def start_asyncio_main():
     asyncio.run(main())
+
+
+if __name__ == '__main__':
+    start_asyncio_main()

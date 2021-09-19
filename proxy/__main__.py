@@ -20,5 +20,9 @@ async def main():
     await proxy.Proxy(args.forwarder_ip).run()
 
 
-if __name__ == '__main__':
+def start_asyncio_main():
     asyncio.run(main())
+
+
+if __name__ == '__main__':
+    start_asyncio_main()
