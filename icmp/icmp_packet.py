@@ -3,7 +3,7 @@ import socket
 import enum
 from dataclasses import dataclass
 
-from .exceptions import WrongChecksumOnICMPPacket, InvalidICMPCode
+from . import exceptions
 
 
 class ICMPType(enum.Enum):
@@ -31,14 +31,14 @@ class ICMPPacket:
         raw_type, code, checksum, identifier, sequence_number = cls.ICMP_STRUCT.unpack(packet[:cls.ICMP_STRUCT.size])
 
         if code != cls.CODE:
-            raise InvalidICMPCode()
+            raise exceptions.InvalidICMPCode()
 
         computed_checksum = cls.compute_checksum(
             cls.ICMP_STRUCT.pack(raw_type, code, 0, identifier, sequence_number) + packet[cls.ICMP_STRUCT.size:]
         )
 
         if checksum != computed_checksum:
-            raise WrongChecksumOnICMPPacket()
+            raise exceptions.WrongChecksumOnICMPPacket()
 
         return cls(ICMPType(raw_type), identifier, sequence_number, packet[cls.ICMP_STRUCT.size:])
 
