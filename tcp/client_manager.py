@@ -3,7 +3,7 @@ import logging
 import collections
 
 from tcp import client_session
-import exceptions
+from . import exceptions
 
 
 log = logging.getLogger(__name__)

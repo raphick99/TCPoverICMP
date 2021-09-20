@@ -1,3 +1,4 @@
+import sys
 import asyncio
 import socket
 import logging
@@ -10,10 +11,6 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 
-# I only need an incoming packet queue, because since the server manages the tcp-incoming messages, it can just call
-#  the appropriate send function. Therefore, I can have a while-true on recv, and on write, just expose an API.
-
-
 class ICMPSocket(object):
     IP_HEADER_LENGTH = 20
     MINIMAL_PACKET = b'\x00\x00'
@@ -24,7 +21,11 @@ class ICMPSocket(object):
     def __init__(self, incoming_queue: asyncio.Queue):
         self.incoming_queue = incoming_queue
 
-        self._icmp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
+        try:
+            self._icmp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
+        except PermissionError as e:
+            log.fatal(f'{e}. root required for opening raw ICMP socket. rerun as root..')
+            sys.exit(1)
         self._icmp_socket.setblocking(False)
         self._icmp_socket.sendto(self.MINIMAL_PACKET, self.DEFAULT_DESTINATION)  # need to send one packet, because didnt bind. otherwise exception is raised when using on first packet.
 

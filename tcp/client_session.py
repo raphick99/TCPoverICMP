@@ -2,7 +2,7 @@ import asyncio
 import logging
 import itertools
 
-from exceptions import ClientClosedConnectionError
+from . import exceptions
 
 
 log = logging.getLogger(__name__)
@@ -41,10 +41,10 @@ class ClientSession:
         try:
             data = await self.reader.read(self.RECV_BLOCK_SIZE)
         except ConnectionResetError:
-            raise ClientClosedConnectionError()
+            raise exceptions.ClientClosedConnectionError()
 
         if not data:
-            raise ClientClosedConnectionError()
+            raise exceptions.ClientClosedConnectionError()
 
         return data
 
@@ -55,7 +55,7 @@ class ClientSession:
         :param data: the data to be written
         """
         if self.writer.is_closing():
-            raise ClientClosedConnectionError()
+            raise exceptions.ClientClosedConnectionError()
 
         if sequence_number in self.packets.keys():
             log.debug(f'ignoring repeated packet: (seq_num={sequence_number})')
