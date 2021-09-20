@@ -4,7 +4,7 @@ setup(
     name='TCPoverICMP',
     version='1.0',
     packages=['tcp', 'core', 'icmp', 'proto', 'proxy', 'forwarder'],
-    url='',
+    url='https://github.com/raphick99/TCPoverICMP',
     license='',
     author='Raphael Ickovics',
     author_email='raphealickovics@gmail.com',
