@@ -1,3 +1,4 @@
+import sys
 import asyncio
 import socket
 import logging
@@ -20,7 +21,11 @@ class ICMPSocket(object):
     def __init__(self, incoming_queue: asyncio.Queue):
         self.incoming_queue = incoming_queue
 
-        self._icmp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
+        try:
+            self._icmp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
+        except PermissionError as e:
+            log.fatal(f'{e}. root required for opening raw ICMP socket. rerun as root..')
+            sys.exit(1)
         self._icmp_socket.setblocking(False)
         self._icmp_socket.sendto(self.MINIMAL_PACKET, self.DEFAULT_DESTINATION)  # need to send one packet, because didnt bind. otherwise exception is raised when using on first packet.
 
