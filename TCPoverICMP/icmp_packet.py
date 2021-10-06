@@ -2,8 +2,7 @@ import struct
 import socket
 import enum
 from dataclasses import dataclass
-
-from . import exceptions
+from TCPoverICMP import exceptions
 
 
 class ICMPType(enum.Enum):

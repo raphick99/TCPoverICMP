@@ -16,3 +16,15 @@ class ClientAlreadyExistsError(Exception):
 
 class RemovingClientThatDoesntExistError(Exception):
     pass
+
+
+class WrongChecksumOnICMPPacket(Exception):
+    pass
+
+
+class InvalidICMPCode(Exception):
+    pass
+
+
+class RecvReturnedEmptyString(Exception):
+    pass

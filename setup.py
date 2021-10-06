@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='TCPoverICMP',
     version='1.0',
-    packages=['tcp', 'core', 'icmp', 'proto', 'proxy', 'forwarder'],
+    packages=['TCPoverICMP'],
     url='https://github.com/raphick99/TCPoverICMP',
     license='',
     author='Raphael Ickovics',
@@ -11,8 +11,8 @@ setup(
     description='ICMP tunnel',
     entry_points={
         'console_scripts': [
-            'forwarder = forwarder.__main__:start_asyncio_main',
-            'proxy = proxy.__main__:start_asyncio_main',
+            'forwarder = TCPoverICMP.forwarder_main:start_asyncio_main',
+            'proxy = TCPoverICMP.proxy_main:start_asyncio_main',
         ],
     },
     install_requires=[

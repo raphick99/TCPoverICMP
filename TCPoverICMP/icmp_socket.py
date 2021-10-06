@@ -3,8 +3,7 @@ import asyncio
 import socket
 import logging
 import contextlib
-
-from . import icmp_packet, exceptions
+from TCPoverICMP import icmp_packet, exceptions
 
 
 log = logging.getLogger(__name__)

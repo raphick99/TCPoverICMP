@@ -1,9 +1,7 @@
 import asyncio
 import logging
-
-from core import tunnel_endpoint
-from tcp import server
-from proto import Tunnel
+from TCPoverICMP import tunnel_endpoint, tcp_server
+from TCPoverICMP.proto import Tunnel
 
 
 log = logging.getLogger(__name__)
@@ -18,7 +16,7 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
         self.destination_host = destination_host
         self.destination_port = destination_port
         self.incoming_tcp_connections = asyncio.Queue()
-        self.tcp_server = server.Server(self.LOCALHOST, port, self.incoming_tcp_connections)
+        self.tcp_server = tcp_server.Server(self.LOCALHOST, port, self.incoming_tcp_connections)
         self.coroutines_to_run.append(self.tcp_server.serve_forever())
         self.coroutines_to_run.append(self.wait_for_new_connection())
 
@@ -46,7 +44,8 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
                 ip=self.destination_host,
                 port=self.destination_port,
             )
-            if await self.send_icmp_packet_and_wait_for_ack(new_tunnel_packet):  # only add client if other endpoint acked.
+            # only add client if other endpoint acked.
+            if await self.send_icmp_packet_and_wait_for_ack(new_tunnel_packet):
                 self.client_manager.add_client(client_id, reader, writer)
             else:  # if the other endpoint didnt receive the start request, close the local client.
                 writer.close()
