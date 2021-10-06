@@ -47,7 +47,7 @@ class ClientManager:
         :param client_id: the client_id to remove
         """
         if not self.client_exists(client_id):
-            raise exceptions.RemovingClientThatDoesntExistError()
+            raise exceptions.RemovingClientThatDoesntExistError(client_id, self.clients.keys())
 
         log.debug(f'removing client: (client_id={client_id})')
         self.clients[client_id].task.cancel()

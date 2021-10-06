@@ -59,9 +59,12 @@ class TunnelEndpoint:
     async def handle_ack_request(self, tunnel_packet: Tunnel):
         """
         generic handle for an ack request.
+        packet can be recognized singularly by combining client_id and sequence_number
         :param tunnel_packet: the packet to ack.
         """
-        self.packets_requiring_ack[(tunnel_packet.client_id, tunnel_packet.sequence_number)].set()
+        packet_id = (tunnel_packet.client_id, tunnel_packet.sequence_number)
+        if packet_id in self.packets_requiring_ack:
+            self.packets_requiring_ack[packet_id].set()
 
     async def run(self):
         """
@@ -101,7 +104,6 @@ class TunnelEndpoint:
                 Tunnel.Action.end: self.handle_end_request,
                 Tunnel.Action.data: self.handle_data_request,
                 Tunnel.Action.ack: self.handle_ack_request,
-
             }
             await actions[tunnel_packet.action](tunnel_packet)
 
