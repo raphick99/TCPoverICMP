@@ -1,9 +1,7 @@
 import asyncio
 import logging
-
-from tcp import client_manager
-from icmp import icmp_socket, icmp_packet
-from proto import Tunnel
+from TCPoverICMP import client_manager, icmp_socket, icmp_packet
+from TCPoverICMP.proto import Tunnel
 
 
 log = logging.getLogger(__name__)

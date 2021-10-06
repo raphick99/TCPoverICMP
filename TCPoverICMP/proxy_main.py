@@ -1,8 +1,7 @@
 import asyncio
 import logging
 import argparse
-
-import proxy
+from TCPoverICMP import proxy
 
 
 logging.basicConfig(level=logging.DEBUG)

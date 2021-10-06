@@ -1,9 +1,7 @@
 import asyncio
 import logging
 import collections
-
-from tcp import client_session
-from . import exceptions
+from TCPoverICMP import client_session, exceptions
 
 
 log = logging.getLogger(__name__)

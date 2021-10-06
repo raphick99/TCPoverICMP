@@ -1,9 +1,7 @@
 import asyncio
 import logging
-
-from core import tunnel_endpoint
-from tcp import server
-from proto import Tunnel
+from TCPoverICMP import tunnel_endpoint, tcp_server
+from TCPoverICMP.proto import Tunnel
 
 
 log = logging.getLogger(__name__)
@@ -18,7 +16,7 @@ class Forwarder(tunnel_endpoint.TunnelEndpoint):
         self.destination_host = destination_host
         self.destination_port = destination_port
         self.incoming_tcp_connections = asyncio.Queue()
-        self.tcp_server = server.Server(self.LOCALHOST, port, self.incoming_tcp_connections)
+        self.tcp_server = tcp_server.Server(self.LOCALHOST, port, self.incoming_tcp_connections)
         self.coroutines_to_run.append(self.tcp_server.serve_forever())
         self.coroutines_to_run.append(self.wait_for_new_connection())
 

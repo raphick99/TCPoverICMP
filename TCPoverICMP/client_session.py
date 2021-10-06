@@ -1,8 +1,7 @@
 import asyncio
 import logging
 import itertools
-
-from . import exceptions
+from TCPoverICMP import exceptions
 
 
 log = logging.getLogger(__name__)

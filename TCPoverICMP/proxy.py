@@ -1,8 +1,7 @@
 import asyncio
 import logging
-
-from core import tunnel_endpoint
-from proto import Tunnel
+from TCPoverICMP import tunnel_endpoint
+from TCPoverICMP.proto import Tunnel
 
 
 log = logging.getLogger(__name__)
